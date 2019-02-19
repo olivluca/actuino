@@ -386,25 +386,25 @@ void loop() {
         break;
         
       case CMD_SET_EAST_LIMIT: 
-	if (error != ERR_LOST_POS) {
+        if (error != ERR_LOST_POS) {
           param[limit_east]=position;
           save_param(limit_east);
           Serial.print(F("Set east limit "));
           Serial.println(param[limit_east]);
-	} else {
+        } else {
           Serial.println(F("Limit not set (position lost)"));
-	}
+        }
         break;
 
       case CMD_SET_WEST_LIMIT:
-	if (error != ERR_LOST_POS) {
+        if (error != ERR_LOST_POS) {
           param[limit_west]=position;
           save_param(limit_west);
           Serial.print(F("Set west limit "));
           Serial.println(param[limit_west]);
-	} else {
+        } else {
           Serial.println(F("Limit not set (position lost)"));
-	}
+        }
         break;
 
       case CMD_GO_EAST:
