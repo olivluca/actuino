@@ -411,25 +411,44 @@ void loop() {
       case CMD_GO_WEST:
         bool go_west;
         go_west=command==CMD_GO_WEST;
+        error=ERR_NOERROR;
         if (parameter>0) {
           target=position+parameter*( go_west ? 1 : -1);
-          positioning=true;
-          reached=false;
-          halt_timer=0;
+          if (go_west && limits_enabled && target > param[limit_west])
+            error=ERR_LIMIT_WEST;
+          if (!go_west && limits_enabled && target < param[limit_east])
+            error=ERR_LIMIT_EAST;
+          if (error==ERR_NOERROR) {
+            positioning=true;
+            reached=false;
+            halt_timer=0;
+          }
         } else {
-          halt_timer=-parameter;
-          positioning=false;
+          if (go_west && limits_enabled && position>=param[limit_west])
+              error=ERR_LIMIT_WEST;
+          if (!go_west && limits_enabled && position<=param[limit_east])
+              error=ERR_LIMIT_EAST;
+          if (error==ERR_NOERROR) {
+            halt_timer=-parameter;
+            positioning=false;
+          }
         }  
-        if (positioning) {
-         Serial.print(parameter);
-         Serial.print(F(" steps "));  
+        if (error==ERR_NOERROR) {
+          if (positioning) {
+           Serial.print(parameter);
+           Serial.print(F(" steps "));
+          } else {
+           Serial.print(-parameter);
+           Serial.print(F(" ms "));
+          }
+          Serial.println(go_west ? F("west") : F("east"));
+          motor.Go(go_west ? MD_WEST : MD_EAST);
         } else {
-         Serial.print(-parameter);
-         Serial.print(F(" ms ")); 
+          motor.Stop();
+          target=position;
+          Serial.print(go_west ? F("West") : F("East"));
+          Serial.println(F(" limit"));
         }
-        Serial.println(go_west ? F("west") : F("east"));
-        motor.Go(go_west ? MD_WEST : MD_EAST);
-        error=ERR_NOERROR;
         break;
 
       case CMD_GO_POSITION:
