@@ -73,9 +73,9 @@ class cursclass():
     curses.halfdelay(1)
     self.window=curses.newwin(3,20,20,1)
     self.stdscr=stdscr
-    stdscr.addstr(1,1,"q=quit, (alt)left/right arrow=move, space=halt, +-=set west/east limits")   
-    stdscr.addstr(2,1,"g=goto, p=set position, e=enable limits, d=disable limits")   
-    stdscr.addstr(3,1,"-----------------------------------------------------------")   
+    stdscr.addstr(1,1,"q=quit, (alt)left/right arrow=move, space=halt, +-=set west/east limits")
+    stdscr.addstr(2,1,"g=goto, p=set position, e=enable d=disable limits, l=lock, u=unlock")
+    stdscr.addstr(3,1,"------------------------------------------------------------------------")
     # Connect to server and send data
     self.sock.settimeout(0.5)
     self.sock.connect((HOST, PORT))
@@ -99,7 +99,11 @@ class cursclass():
         elif c == ord('p'):
           self.readint("Position","P")
         elif c == ord('+') or c == ord('-') or c == ord('e') or c == ord('d'):
-          self.sendcommand(chr(c).upper())    
+          self.sendcommand(chr(c).upper())
+        elif c == ord('l'):
+          self.sendcommand('LOCK')
+        elif c == ord('u'):
+          self.sendcommand('UNLOCK')
         received = self.sendcommand("?",False)
         if received!='ERR':
           (s,e,target,position,eastlimit,westlimit,limitsenabled,freeram)=received.split(',')
