@@ -18,6 +18,10 @@ import sys
 import traceback
 import serial
 import argparse
+from kodi.xbmcclient import *
+
+statuses=('Parado','Moviendo a oeste','Moviendo a este')
+errors=('','Posicion perdida','Limite este','Limite oeste','No se mueve (no hay pulsos)')
 
 class actuator:
    def __init__(self,port,test=False):
@@ -26,6 +30,11 @@ class actuator:
      self.opened=False;
      self.port=port
      self.exclusive=0
+     self.sock=socket(AF_INET,SOCK_DGRAM)
+     self.olds=''
+     self.olde=''
+     self.oldtarget=''
+     self.oldposition=''
    
    def open(self):
      if not self.test:
@@ -41,14 +50,28 @@ class actuator:
    def checkportloop(self):
      if not self.test:
        while True:
-         time.sleep(0.5)
+         time.sleep(1.5)
          self.lock.acquire()
          try:
-           if self.opened:
-             self.serial.in_waiting
+           reply=self.sendrec('?\n').strip()
+           if reply=='ERR' or reply=='LOCKED':
+             self.olds=''
+             continue
+           (s,e,target,position,eastlimit,westlimit,limitsenabled,freeram)=reply.split(',')
+           if s!=self.olds or e!=self.olde or target!=self.oldtarget or position!=self.oldposition:
+             self.olds=s
+             self.olde=e
+             self.oldtarget=target
+             self.oldposition=position
+             err=int(e)
+             if err==0:
+               msg=statuses[int(s)]
+             else:
+               msg=errors[err]
+             packet=PacketACTION(actionmessage="Notification(Parabolica,%s\nDestino %s posicion %s,1500,/storage/actuator/parabolica.png)" % (msg,target,position), actiontype=ACTION_BUTTON)
+             packet.send(self.sock,('localhost',9777))
          except:
            traceback.print_exc()
-           self.close()
          finally:    
            self.lock.release()
          
