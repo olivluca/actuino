@@ -18,7 +18,11 @@ I'm using it with a tv box running kodi and tvheadend (the trunk version of tvhe
 
 
 #Schematics
-I made the schematics in Fritzing (the file actuino.fzz). 
+I made the schematics in Fritzing (the file actuino.fzz).
+I also provide a png rendering of the [breadboard view](https://bitbucket.org/olivluca/actuino/src/default/actuino_bb.png) and [schematics view](https://bitbucket.org/olivluca/actuino/src/default/actuino_schem.png) .
+
+ [Breadboard view
+
 
 #Arduino program
 
