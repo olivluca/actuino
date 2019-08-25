@@ -1,4 +1,4 @@
-#Actuino
+# Actuino
 This is an arduino program, schematics and utilities to control an old stile linear or horizon to horizon actuator to steer a satellite dish.
 This kind of actuator usually needs a 36V supply (I drive mine at 12V to reduce noise) and has a reed relay that gives pulses while the motor is running. By counting the pulses you know the position of the actuator (and the position of the dish).
 
@@ -7,7 +7,7 @@ I decided to write an arduino version controlled with an usb to serial cable.
 
 I'm using it with a tv box running kodi and tvheadend (the trunk version of tvheadend can use an external command to move the dish).
 
-#Components
+# Components
 
 * an arduino pro mini (atmega 168, but you can use another model)
 * a 2 relays module,
@@ -17,14 +17,14 @@ I'm using it with a tv box running kodi and tvheadend (the trunk version of tvhe
 
 
 
-#Schematics
+# Schematics
 I made the schematics in Fritzing (the file actuino.fzz).
-I also provide a png rendering of the [breadboard view](https://bitbucket.org/olivluca/actuino/src/default/actuino_bb.png) and [schematics view](https://bitbucket.org/olivluca/actuino/src/default/actuino_schem.png) .
+I also provide a png rendering of the [breadboard view](actuino_bb.png) and [schematics view](actuino_schem.png) .
 
- [Breadboard view
+ ![breadboard view](actuino_bb.png)
 
 
-#Arduino program
+# Arduino program
 
 In order to avoid burning the internal EEPROM, I use an FRAM chip to keep the current position of the dish. 
 The chip is connected using I2C and I'm using the I2C-Master-Library, however I had to fork it in order to add functions to identify the chip.
@@ -32,7 +32,7 @@ My forked version is available on [github](https://github.com/olivluca/I2C-Maste
 
 I decided that the count increases when the dish moves west and decreases when it moves east.
 
-##Commands
+## Commands
 
 Usually you'll use the provided utilities to move the dish, but for debugging purposes you can send commands directly with a terminal program (though you'll have to type them quickly since the arduino will time out otherwise).
 The commands are a single character, some of the commands need a parameter. There is no space between the command and the parameter. The commands are terminated with CR or LF.
@@ -51,7 +51,7 @@ The available commands are:
 * **X**  clears the internal EEPROM (which only stores the limits)
 * **P** *parameter* sets the current position
 
-##Status
+## Status
 
 The status returned by ? is a line with various fields separated with commas. The format of the line is
 
@@ -66,14 +66,14 @@ The possible error codes are:
 * 3 west limit reached
 * 4 dish not moving (no pulses from the reed switch)
 
-#Utilities
+# Utilities
 
 These are some python scripts useful for controlling the dish:
 
 * **sermux.py** multiplexes the serial port to multiple tcp connections
 * **manual.py** allows to move the dish manually with a curses interface
 
-##sermux.py
+## sermux.py
 
 Since only one program at a time can open the serial port, this script keeps the port open and allows other programs to control the actuator through
 a TCP connection.
@@ -82,7 +82,7 @@ It also sends status messages to the running kodi instance at localhost to give 
 By default it listens on tcp port 12345, but you can specify a different port with the --port parameter.
 It should be left running all the time.
 
-##manual.py
+## manual.py
 
 This program provides a curses interface to control the dish. It connects to the host specified as its parameter, port 12345. It gives a list
 of the available options and shows the current status of the actuator.
