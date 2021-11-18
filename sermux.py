@@ -12,13 +12,20 @@
 
 import time
 import threading
-import SocketServer
+import socketserver
 import signal
 import sys
 import traceback
 import serial
 import argparse
-from kodi.xbmcclient import *
+import os
+import http.client
+from urllib.parse import urlencode
+try:
+  from kodi.xbmcclient import *
+  conkodi=True
+except:
+  conkodi=False
 
 statuses=('Parado','Moviendo a oeste','Moviendo a este')
 errors=('','Posicion perdida','Limite este','Limite oeste','No se mueve (no hay pulsos)')
@@ -30,7 +37,8 @@ class actuator:
      self.opened=False;
      self.port=port
      self.exclusive=0
-     self.sock=socket(AF_INET,SOCK_DGRAM)
+     if conkodi:
+       self.sock=socket(AF_INET,SOCK_DGRAM)
      self.olds=''
      self.olde=''
      self.oldtarget=''
@@ -50,26 +58,52 @@ class actuator:
    def checkportloop(self):
      if not self.test:
        while True:
-         time.sleep(1.5)
+         time.sleep(1)
          self.lock.acquire()
          try:
-           reply=self.sendrec('?\n').strip()
+           reply=self.sendrec(b'?\n').strip().decode()
            if reply=='ERR' or reply=='LOCKED':
              self.olds=''
              continue
            (s,e,target,position,eastlimit,westlimit,limitsenabled,freeram)=reply.split(',')
            if s!=self.olds or e!=self.olde or target!=self.oldtarget or position!=self.oldposition:
+             if s=="0":
+               #print("stopped")
+               try:
+                 os.remove("/tmp/rotor_moving_0")
+               except:
+                 pass
+             else:
+               #print("moving")
+               open("/tmp/rotor_moving_0","w")
              self.olds=s
              self.olde=e
              self.oldtarget=target
              self.oldposition=position
              err=int(e)
+             payload={}
              if err==0:
                msg=statuses[int(s)]
+               payload["timeout"]=1
+               payload["type"]=1
              else:
                msg=errors[err]
-             packet=PacketACTION(actionmessage="Notification(Parabolica,%s\nDestino %s posicion %s,1500,/storage/actuator/parabolica.png)" % (msg,target,position), actiontype=ACTION_BUTTON)
-             packet.send(self.sock,('localhost',9777))
+               payload["timeout"]=10
+               payload["type"]=3
+             payload["text"]="%s\nDestino %s posicion %s" % (msg,target,position)
+             try:
+               c=http.client.HTTPConnection('localhost')
+               c.request("GET","/api/message?"+urlencode(payload))
+             except:
+               pass
+             del c
+             if conkodi:
+               packet=PacketACTION(actionmessage="Notification(Parabolica,%s\nDestino %s posicion %s,1500,/storage/actuator/parabolica.png)" % (msg,target,position), actiontype=ACTION_BUTTON)
+               for client in ('localhost', 'seis', 'librepi'):
+                 try:
+                   packet.send(self.sock,(client,9777))
+                 except:
+                   pass
          except:
            traceback.print_exc()
          finally:    
@@ -136,16 +170,16 @@ checkthread.setDaemon(True)
 checkthread.start()
 
 def signal_handler(sig, frame):
-   print "Terminating"
+   print("Terminating")
    sys.exit(0)
    
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)         
 
-class Handler(SocketServer.StreamRequestHandler):
+class Handler(socketserver.StreamRequestHandler):
   def setup(self):
-    print "New connection from ", self.client_address
-    return SocketServer.StreamRequestHandler.setup(self)
+    print("New connection from ", self.client_address)
+    return socketserver.StreamRequestHandler.setup(self)
     
   def handle(self):
     while True:
@@ -160,14 +194,14 @@ class Handler(SocketServer.StreamRequestHandler):
      self.wfile.write(reply)
        
   def finish(self):
-    print "Closed connection from",self.client_address
+    print("Closed connection from",self.client_address)
     ac.sendrec("UNLOCK\n") #in case this connection locked the serial port
-    return SocketServer.StreamRequestHandler.finish(self)
+    return socketserver.StreamRequestHandler.finish(self)
        
-class ThreadedTcpServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class ThreadedTcpServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
   pass
   
-SocketServer.TCPServer.allow_reuse_address=True
+socketserver.TCPServer.allow_reuse_address=True
 server = ThreadedTcpServer(('',args.port), Handler)
 server.daemon_threads = True
 server.serve_forever()
