@@ -47,11 +47,11 @@ class cursclass():
     self.stdscr.addstr(15,1,self._status); self.stdscr.clrtoeol()
     
   def sendcommand(self,command,status=True):
-    self.sock.sendall(command+'\n')
+    self.sock.sendall((command+'\n').encode())
     reply=self.sock.recv(1024).strip()
     if status:
       self.setstatus(reply)
-    return reply  
+    return reply.decode()
     
   def readint(self,prompt,command,status=True):
     self.stdscr.addstr(15,1,prompt); self.stdscr.clrtoeol()
