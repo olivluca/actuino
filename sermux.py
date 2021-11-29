@@ -66,15 +66,14 @@ class actuator:
              self.olds=''
              continue
            (s,e,target,position,eastlimit,westlimit,limitsenabled,freeram)=reply.split(',')
-           if s!=self.olds or e!=self.olde or target!=self.oldtarget or position!=self.oldposition:
-             if s=="0":
-               #print("stopped")
-               try:
+           if s=="0":
+             try:
+               if abs(int(position)-int(target))<=5:
                  os.remove("/tmp/rotor_moving_0")
-               except:
-                 pass
-             else:
-               #print("moving")
+             except:
+               pass
+           if s!=self.olds or e!=self.olde or target!=self.oldtarget or position!=self.oldposition:
+             if s!="0":
                open("/tmp/rotor_moving_0","w")
              self.olds=s
              self.olde=e
