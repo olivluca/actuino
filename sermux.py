@@ -124,34 +124,34 @@ class actuator:
      self.lock.acquire()
      try:
        tid=threading.current_thread().ident
-       if send=="LOCK\n":
+       if send.strip()==b"LOCK":
          if self.exclusive==0 or self.exclusive==tid:
            self.exclusive=tid
-           return "Locked\n"
+           return b"Locked\n"
          else:
-           return "Already locked\n"
-       if send=="UNLOCK\n":
+           return b"Already locked\n"
+       if send.strip()==b"UNLOCK":
          if self.exclusive==0 or self.exclusive==tid:
            self.exclusive=0
-           return "Unlocked\n"
+           return b"Unlocked\n"
          else:
-           return "Not locked by this client\n"
-       if self.exclusive!=0 and self.exclusive!=tid and send!='?\n':
-         return "LOCKED\n"
+           return b"Not locked by this client\n"
+       if self.exclusive!=0 and self.exclusive!=tid and send.strip()!=b'?':
+         return b"LOCKED\n"
        if not self.opened:
          self.open()
        if self.opened:
          try:  
            self.serial.write(send)
-           result=self.serial.readline()  
+           result=self.serial.readline()
          except:
            traceback.print_exc()
            self.close()
            result=''  
      finally:
        self.lock.release()
-     if result=='':  
-       result='ERR\n'  
+     if result==b'':
+       result=b'ERR\n'
      return result  
              
 
@@ -194,7 +194,7 @@ class Handler(socketserver.StreamRequestHandler):
        
   def finish(self):
     print("Closed connection from",self.client_address)
-    ac.sendrec("UNLOCK\n") #in case this connection locked the serial port
+    ac.sendrec(b"UNLOCK\n") #in case this connection locked the serial port
     return socketserver.StreamRequestHandler.finish(self)
        
 class ThreadedTcpServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
