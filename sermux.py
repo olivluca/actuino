@@ -84,11 +84,11 @@ class actuator:
              if err==0:
                msg=statuses[int(s)]
                payload["timeout"]=1
-               payload["type"]=1
+               payload["type"]=2
              else:
                msg=errors[err]
                payload["timeout"]=10
-               payload["type"]=3
+               payload["type"]=4
              payload["text"]="%s\nDestino %s posicion %s" % (msg,target,position)
              try:
                c=http.client.HTTPConnection('localhost')
