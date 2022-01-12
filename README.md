@@ -5,7 +5,7 @@ This kind of actuator usually needs a 36V supply (I drive mine at 12V to reduce 
 A previous iteration used a parallel port and a Linux device driver, but since it's increasingly difficult to find a PC with a parallel port and there's an abundance of cheap TV boxes with usb ports,
 I decided to write an arduino version controlled with an usb to serial cable.
 
-I'm using it with a tv box running kodi and tvheadend (the trunk version of tvheadend can use an external command to move the dish).
+I've been using it with a tv box running kodi and tvheadend (the trunk version of tvheadend can use an external command to move the dish), but since the tv box died now I'm using it with an enigma2 box running [openatv](https://github.com/openatv/enigma2/commit/8ad64e488b32b3b1896f9dddfaf1278edb525406).
 
 # Components
 
@@ -78,7 +78,7 @@ These are some python scripts useful for controlling the dish:
 Since only one program at a time can open the serial port, this script keeps the port open and allows other programs to control the actuator through
 a TCP connection.
 This way multiple programs can control the actuator at the same time (though care should be taken to avoid conflicting movements).
-It also sends status messages to the running kodi instance at localhost to give some feedback about the dish movement.
+It also sends status messages to the running enigma2 instance at localhost to give some feedback about the dish movement.
 By default it listens on tcp port 12345, but you can specify a different port with the --port parameter.
 It should be left running all the time.
 
